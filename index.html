@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCT Abu Dhabi Brand Health Tracker Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="charts.js"></script>
+    <style>
+        /* SONER Logo Animation */
+        @keyframes sonerScan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes sonerBlip { 0%, 20%, 100% { opacity: 0; } 2%, 15% { opacity: 1; } 3% { transform: scale(1.2); } }
+        
+        /* SONER Logo styles */
+        .soner-logo { display: flex; align-items: center; color: white; font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 300; }
+        .soner-radar { width: 24px; height: 24px; border-radius: 50%; border: 1px solid white; margin: 0 3px; position: relative; background-color: rgba(255, 255, 255, 0.05); overflow: hidden; }
+        .soner-scanner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; animation: sonerScan 4s linear infinite; transform-origin: center; }
+        .soner-scanner::before { content: ''; position: absolute; top: 0; left: 50%; width: 50%; height: 50%; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.4)); transform-origin: bottom left; clip-path: polygon(0 0, 100% 0, 0 100%); }
+        .soner-scanner::after { content: ''; position: absolute; top: 0; left: 50%; width: 50%; height: 1px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 1)); transform-origin: left center; box-shadow: 0 0 4px rgba(255, 255, 255, 0.8); }
+        .soner-blip { position: absolute; width: 2px; height: 2px; background-color: white; border-radius: 50%; opacity: 0; box-shadow: 0 0 4px white; }
+        .soner-blip:nth-child(1) { top: 25%; left: 30%; animation: sonerBlip 4s 1s infinite; }
+        .soner-blip:nth-child(2) { top: 65%; left: 60%; animation: sonerBlip 4s 2.5s infinite; }
+        .soner-tagline { color: white; font-size: 8px; text-transform: uppercase; font-weight: 500; letter-spacing: 0.5em; margin-left: 10px; opacity: 0.8; }
+
+        :root {
+            --primary: #4285f4;
+            --primary-light: #1a2233;
+            --primary-dark: #8ab4f8;
+            --secondary: #34a853;
+            --secondary-light: #1a2a1e;
+            --warning: #fbbc04;
+            --warning-light: #332a1a;
+            --danger: #ea4335;
+            --danger-light: #331f1e;
+            --gray-100: #1e1e1e;
+            --gray-200: #2d2d2d;
+            --gray-300: #3d3d3d;
+            --gray-400: #4d4d4d;
+            --gray-500: #777777;
+            --gray-600: #a0a0a0;
+            --gray-700: #c0c0c0;
+            --gray-800: #e0e0e0;
+            --gray-900: #f0f0f0;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 6px 12px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 15px 25px rgba(0, 0, 0, 0.6);
+            --radius-sm: 4px;
+            --radius: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --transition: all 0.3s ease;
+            --bg-color: #000000;
+            --card-bg: #121212;
+            --section-bg: #181818;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--gray-800);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a73e8 0%, #174ea6 100%);
+            color: white;
+            padding: 32px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI0MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSIxMDAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjRkZGIiBzdG9wLW9wYWNpdHk9Ii4wNSIgb2Zmc2V0PSIwJSIvPjxzdG9wIHN0b3AtY29sb3I9IiNGRkYiIHN0b3Atb3BhY2l0eT0iLjAyIiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cGF0aCBkPSJNMTQ0MCAyMDBjLTEzMS44LTEyLjktMjY3LjgtMTkuNC00MDgtMTkuNC0xNDAuMiAwLTI3Ni4yIDYuNS00MDggMTkuNFYwaDgxNnYyMDB6IiBmaWxsPSJ1cmwoI2EpIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            margin-top: 0;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--gray-900);
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        h2 i {
+            margin-right: 12px;
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+        
+        h3 {
+            font-size: 1.35rem;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        h3 i {
+            margin-right: 10px;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+        }
+        
+        .section {
+            background-color: var(--section-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            margin-bottom: 32px;
+            transition: var(--transition);
+            border: 1px solid var(--gray-300);
+        }
+        
+        .section:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .section h2 {
+            border-bottom: 2px solid var(--gray-200);
+            padding-bottom: 16px;
+            margin-bottom: 28px;
+        }
+        
+        .nav-container {
+            background-color: var(--gray-100);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+        
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+        
+        .nav-item {
+            margin: 0;
+        }
+        
+        .nav-link {
+            color: var(--gray-700);
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: block;
+            transition: var(--transition);
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+            transform: scaleX(0);
+            transition: var(--transition);
+        }
+        
+        .nav-link:hover {
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            color: var(--primary);
+        }
+        
+        .nav-link.active::after {
+            transform: scaleX(1);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin: 1.5rem 0;
+        }
+        
+        .metric-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            border: 1px solid var(--gray-300);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            height: 180px; /* Fixed height instead of min-height */
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--primary);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+        
+        .metric-name {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .metric-name i {
+            margin-right: 8px;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+            line-height: 1.1;
+        }
+        
+        .change {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .change i {
+            margin-right: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .positive { 
+            background-color: var(--secondary-light); 
+            color: var(--secondary);
+        }
+        
+        .negative { 
+            background-color: var(--danger-light); 
+            color: var(--danger);
+        }
+        
+        .neutral { 
+            background-color: var(--warning-light); 
+            color: var(--warning);
+        }
+        
+        .insight-card {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 20px 24px;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .insight-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .insight-title i {
+            margin-right: 10px;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .footer {
+            background-color: var(--gray-100);
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 40px;
+            border-top: 1px solid var(--gray-300);
+        }
+        
+        @media (max-width: 992px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+            }
+            
+            .nav-link {
+                padding: 0.75rem 1rem;
+            }
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+        
+        .print-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(26, 115, 232, 0.5);
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+            }
+            
+            .section {
+                box-shadow: none;
+                break-inside: avoid;
+            }
+            
+            .print-btn {
+                display: none;
+            }
+            
+            .nav-container {
+                display: none;
+            }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make navigation interactive
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 70,
+                        behavior: 'smooth'
+                    });
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Print functionality
+            document.querySelector('.print-btn').addEventListener('click', function() {
+                window.print();
+            });
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+                <div class="soner-logo">
+                    S<div class="soner-radar">
+                        <div class="soner-scanner"></div>
+                        <div class="soner-blip"></div>
+                        <div class="soner-blip"></div>
+                    </div>NER
+                    <span class="soner-tagline">Visual Intelligence</span>
+                </div>
+            </div>
+            <h1>DCT Abu Dhabi Domestic Brand Health Tracker</h1>
+            <div style="text-align: center; width: 100%; margin: 0 auto;">
+                <h2 style="font-size: 1.3rem; margin-top: 5px; font-weight: 500; display: inline-block;">Department of Culture and Tourism - Abu Dhabi</h2>
+            </div>
+            <p>Market Analysis and Performance Indicators | March 2025</p>
+        </div>
+    </header>
+    
+    <div class="nav-container">
+        <div class="container">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#executive-summary" class="nav-link active">Executive Summary</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#recommendations" class="nav-link">Strategic Recommendations</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Executive Summary Section -->
+        <section id="executive-summary" class="section">
+            <h2><i class="fas fa-chart-line"></i> Executive Summary</h2>
+            <p>This report provides a comprehensive analysis of Abu Dhabi's domestic brand health based on three key research studies conducted in 2024-2025:</p>
+            
+            <ul style="margin-bottom: 20px; margin-left: 20px;">
+                <li><strong>UAE Brand Tracker (Q4'24)</strong> - A quarterly survey of 800 UAE residents outside Abu Dhabi measuring ad awareness, brand perceptions, and visit intent. This continuous tracking study provides trend data since Q3'22, allowing for year-over-year comparisons of key metrics.</li>
+                <li><strong>Destination Visitor Survey (DVS) 2024</strong> - Face-to-face interviews with 2,500 domestic visitors to Abu Dhabi, capturing detailed information on visitor profiles, behaviors, satisfaction, and spending patterns. The study segments visitors by type (same-day vs. overnight) and purpose (leisure, business, VFR).</li>
+                <li><strong>Nightlife Survey 2024</strong> - An online survey of 1,500 UAE residents, including 600 Abu Dhabi residents, focused on nightlife preferences and behaviors. This specialized study examines the "leakage" of Abu Dhabi residents to Dubai for nightlife activities.</li>
+            </ul>
+            
+            <p>Together, these studies provide a holistic view of Abu Dhabi's position in the domestic tourism market, revealing both strengths to leverage and opportunities for strategic improvement.</p>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-chart-line"></i> Brand Health Key Metrics</h3>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-eye"></i> Top-of-Mind Ad Awareness</div>
+                    <div class="metric-value">38%</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> +2% vs Q4'23</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-ad"></i> Total Ad Awareness</div>
+                    <div class="metric-value">73%</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> +8% vs Q4'23</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-suitcase-rolling"></i> Past 12-month Visitation</div>
+                    <div class="metric-value">58%</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> +3% vs Q4'23</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-plane-departure"></i> Consideration to Visit (Next 6 months)</div>
+                    <div class="metric-value">75%</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> +7% vs Q4'23</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-calendar-alt"></i> Intent to Visit (Next 3 months)</div>
+                    <div class="metric-value">57%</div>
+                    <div class="change positive"><i class="fas fa-arrow-up"></i> +4% vs Q4'23</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> DVS Key Metrics</h3>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-hourglass-half"></i> Same-day Visitors</div>
+                    <div class="metric-value">67%</div>
+                    <div class="change negative"><i class="fas fa-arrow-up"></i> +2% vs 2023</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-bed"></i> Average Length of Stay</div>
+                    <div class="metric-value">1.2</div>
+                    <div class="change neutral">Days</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-smile"></i> Overall Satisfaction</div>
+                    <div class="metric-value">84%</div>
+                    <div class="change neutral"><i class="fas fa-arrow-down"></i> -1% vs 2023</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-bullhorn"></i> Net Promoter Score</div>
+                    <div class="metric-value">29</div>
+                    <div class="change neutral"><i class="fas fa-equals"></i> No change vs 2023</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-name"><i class="fas fa-wallet"></i> Average Visitor Spend</div>
+                    <div class="metric-value">$65</div>
+                    <div class="change negative"><i class="fas fa-arrow-down"></i> -$8 vs 2023</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> Brand Awareness & Perception</h3>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-chart-line"></i> Growing Brand Strength</div>
+                <p>Abu Dhabi is experiencing its highest brand health metrics on record, with significant improvements over the past year: total ad awareness up 8% and visit intent up 7%. The emirate has shown the most consistent growth pattern among all emirates, with visitation increasing from 32% in Q3'22 to 58% in Q4'24. While ranking second to Dubai in ad awareness and visitation, Abu Dhabi outperforms all other emirates by a substantial margin and is the only emirate showing continuous quarter-over-quarter growth.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-thumbs-up"></i> Perception Strengths & Challenges</div>
+                <p><strong>Strengths:</strong> Abu Dhabi is most strongly associated with being a place to reconnect with oneself (72%), hosting exciting international sports events (71%), having beautiful beaches (70%), and having interesting museums (69%).</p>
+                <p><strong>Challenges:</strong> Abu Dhabi is less associated with having good weather year-round (37%), having inspiring experiences (42%), being easy to access (43%), and having accommodation options for every budget (43%).</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-bullhorn"></i> Campaign Effectiveness</div>
+                <p>The Q4 2024 campaigns have proven highly effective:</p>
+                <p><strong>Global Brand Ambassador (Chris Hemsworth):</strong> 49% recognition rate with 65% correct brand association and exceptional 91% appeal rating, significantly outperforming tourism industry benchmarks (typically 30-35%).</p>
+                <p><strong>Cultural Heritage Campaign:</strong> 31% definite recognition with 74% correct brand association and strong 88% appeal rating, establishing strong ownership in the cultural tourism space.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-chart-pie"></i> Marketing Funnel Effectiveness</div>
+                <p>Abu Dhabi shows strong performance throughout the marketing funnel:</p>
+                <ul>
+                    <li><strong>Awareness:</strong> 73% of UAE residents are aware of Abu Dhabi advertising</li>
+                    <li><strong>Consideration:</strong> 75% would consider visiting Abu Dhabi in the next 6 months</li>
+                    <li><strong>Intent:</strong> 57% plan to visit Abu Dhabi in the next 3 months</li>
+                    <li><strong>Action:</strong> 58% have actually visited Abu Dhabi in the past 12 months</li>
+                </ul>
+                <p>The high conversion rate from consideration to action (77% - calculated from 58% visitation vs 75% consideration) indicates that Abu Dhabi's marketing is particularly effective at converting interest into actual visits, outperforming other emirates in this regard.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-calendar-alt"></i> Quarterly Performance Patterns</div>
+                <p>Q2 consistently shows the strongest growth for Abu Dhabi awareness and visitation, suggesting seasonal factors influence campaign effectiveness. The most significant jumps in awareness occurred between Q1'23 and Q2'23 (from 27% to 39% spontaneous awareness), indicating an opportunity to optimize timing of marketing initiatives.</p>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-user-friends"></i> Visitor Behavior & Experience</h3>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-clock"></i> Short Stay Duration</div>
+                <p>The average length of stay for domestic visitors is 1.2 days, indicating brief visits that typically extend just slightly beyond a single day. 67% of domestic visitors are same-day visitors, up from 50% in 2021, representing a significant opportunity to convert these visitors into overnight stays.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-users"></i> Visitor Behavior</div>
+                <p>Primary information sources for visitors include social media (Instagram 61%, Facebook 60%, TikTok 44%), online search engines (59%), and personal recommendations (55%). 57% of domestic visitors don't typically make any bookings for their trips, highlighting the spontaneous nature of domestic travel.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-user-tie"></i> Business Visitor Insights</div>
+                <p>Business visitors account for 35% of all domestic visitors, with higher proportions among same-day visitors (53%). These visitors represent a significant opportunity for conversion to leisure extensions ("bleisure" travel), particularly given their higher likelihood to be promoters of Abu Dhabi (higher NPS scores than leisure visitors).</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-chart-bar"></i> Visitor Demographics</div>
+                <p>57% of visitors are between 18-39 years of age, and 62% are male. 96% come from either Dubai (70%) or Sharjah (26%), highlighting the importance of these two emirates as source markets. The younger demographic profile suggests opportunities for experience development targeting this age group.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-redo"></i> Declining Revisit Intent</div>
+                <p>While 82% express a strong desire to revisit, this has been declining over the past three years (from 92% in 2021), driven by decreases among business and VFR (Visiting Friends and Relatives) visitors. This trend requires attention to ensure long-term sustainability of domestic tourism.</p>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 15px;"><i class="fas fa-glass-martini-alt"></i> Nightlife Insights</h3>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-plane-departure"></i> Nightlife "Leakage"</div>
+                <p>55% of Abu Dhabi residents visit Dubai for nightlife activities, spending significantly more per person (AED 591 vs. AED 436) and often staying overnight (66%). This represents a substantial opportunity to enhance Abu Dhabi's nightlife offerings to retain this audience.</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-moon"></i> Nightlife Motivators</div>
+                <p>Factors that would motivate more nightlife participation in Abu Dhabi include wider variety of venues (48%), more vibrant atmosphere (46%), more affordable venues (42%), unique experiences (35%), and better quality entertainment (31%).</p>
+            </div>
+            
+            <div class="insight-card">
+                <div class="insight-title"><i class="fas fa-users"></i> Nightlife Demographic Patterns</div>
+                <p>Nightlife is particularly important to Emiratis (78%) and Westerners (77%), with these groups showing the highest "leakage" to Dubai (75% and 92% respectively). The 18-35 age group also shows high leakage rates (62-63%), indicating a need for targeted nightlife development for these specific segments.</p>
+            </div>
+        </section>
+        
+        <!-- Strategic Recommendations Section -->
+        <section id="recommendations" class="section">
+            <h2><i class="fas fa-lightbulb"></i> Strategic Recommendations</h2>
+            
+            <p style="margin-bottom: 30px;">Based on the comprehensive analysis of Abu Dhabi's domestic brand health, we recommend the following strategic initiatives to capitalize on strengths and address key challenges:</p>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-bullhorn"></i> 1. Enhance Communication Strategy</h3>
+                <div class="two-column">
+                    <div>
+                        <h4>Optimize Campaign Approach</h4>
+                        <ul>
+                            <li>Continue with both campaign types (celebrity ambassador and cultural heritage)</li>
+                            <li>Consider expanding celebrity endorsements to include regional celebrities</li>
+                            <li>Create more distinctive cultural storytelling to improve recall</li>
+                            <li>Shift from awareness-building to conversion-driving</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Media and Timing Strategy</h4>
+                        <ul>
+                            <li>Implement heavier campaign investment leading into Q2</li>
+                            <li>Focus on Dubai residents (70% of visitors) while expanding efforts in Sharjah (26%)</li>
+                            <li>Shift to strategic pulsing with emphasis on memorability</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-user-friends"></i> 2. Enhance Visitor Experience</h3>
+                <div class="two-column">
+                    <div>
+                        <h4>Develop Day-Trip Packages</h4>
+                        <ul>
+                            <li>Create compelling one-day itineraries targeting same-day visitors</li>
+                            <li>Partner with attractions to offer bundled experiences</li>
+                            <li>Develop special promotions for weekday visits</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Address Price Perception</h4>
+                        <ul>
+                            <li>Develop tiered pricing strategies for different budget levels</li>
+                            <li>Create value-added packages that enhance perceived value</li>
+                            <li>Implement seasonal promotions during slower periods</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-bed"></i> 3. Convert Day Visitors to Overnight Stays</h3>
+                <div class="two-column">
+                    <div>
+                        <h4>Create Compelling Overnight Packages</h4>
+                        <ul>
+                            <li>Develop weekend packages combining accommodation with attractions</li>
+                            <li>Partner with hotels to create family-friendly stay experiences</li>
+                            <li>Implement "second day free" promotions at key attractions</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Enhance Evening Experiences</h4>
+                        <ul>
+                            <li>Expand nightlife offerings to give visitors reasons to stay overnight</li>
+                            <li>Develop evening cultural experiences and entertainment options</li>
+                            <li>Create twilight/evening versions of popular daytime attractions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-glass-martini-alt"></i> 4. Revitalize Nightlife Offerings</h3>
+                <div class="two-column">
+                    <div>
+                        <h4>Address the "Leakage" to Dubai</h4>
+                        <ul>
+                            <li>Develop unique nightlife concepts that differentiate from Dubai's offerings</li>
+                            <li>Create more vibrant atmospheres in existing venues</li>
+                            <li>Improve the variety of nightlife options across different price points</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Enhance Nightlife Districts</h4>
+                        <ul>
+                            <li>Focus on developing vibrant nightlife clusters in key areas</li>
+                            <li>Improve transportation options to/from nightlife districts</li>
+                            <li>Create signature nightlife events to drive visitation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-globe-asia"></i> 5. Competitive Positioning Strategy</h3>
+                <div class="two-column">
+                    <div>
+                        <h4>Dubai Differentiation</h4>
+                        <ul>
+                            <li>Emphasize Abu Dhabi's unique cultural depth and authenticity</li>
+                            <li>Match Dubai on modernity while highlighting more relaxed atmosphere</li>
+                            <li>Position as offering the "best of both worlds"</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Ras Al Khaimah Counter-Strategy</h4>
+                        <ul>
+                            <li>Monitor RAK's growing competitive threat in adventure tourism</li>
+                            <li>Strengthen Abu Dhabi's outdoor offerings while emphasizing infrastructure</li>
+                            <li>Highlight ability to combine adventure with world-class cultural attractions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 30px; border: 1px solid var(--gray-300);">
+                <h3><i class="fas fa-handshake"></i> 6. Stakeholder Recommendations</h3>
+                
+                <div class="insight-card" style="background-color: var(--primary-light); margin: 15px 0;">
+                    <div class="insight-title"><i class="fas fa-landmark"></i> Attraction & Destination Management</div>
+                    <ul>
+                        <li><strong>Leverage Sports Event Strength:</strong> Capitalize on Abu Dhabi's strong association with international sports events (71%) by developing more year-round sports-related experiences and packages.</li>
+                        <li><strong>Target Business Visitors:</strong> Develop specific "bleisure" packages for the significant business visitor segment (35% of all visitors), encouraging them to extend their stay with leisure activities.</li>
+                        <li><strong>Create Compelling Evening Experiences:</strong> Develop evening entertainment packages that give same-day visitors (67%) a reason to stay overnight in Abu Dhabi.</li>
+                        <li><strong>Enhance Destination Value Perception:</strong> Address the declining value perception (-4% YoY) with tiered pricing strategies and value-added packages for attractions and experiences.</li>
+                    </ul>
+                </div>
+                
+                <div class="insight-card" style="background-color: var(--primary-light); margin: 15px 0;">
+                    <div class="insight-title"><i class="fas fa-bus"></i> Transportation & Accessibility</div>
+                    <ul>
+                        <li><strong>Inter-Emirate Connectivity:</strong> Develop seamless ground transportation options between Abu Dhabi and other emirates, particularly Dubai and Sharjah (source of 96% of visitors).</li>
+                        <li><strong>Address Accessibility Perception:</strong> Counter the perception that Abu Dhabi is not easy to access (43% association) through improved transportation infrastructure and signage.</li>
+                        <li><strong>Enhanced Transportation Options:</strong> Implement additional transportation packages or expand pick-up locations to make it more convenient for same-day visitors to extend their stay.</li>
+                        <li><strong>Nightlife Transportation:</strong> Improve transportation options to/from nightlife districts to encourage visitors to participate in evening activities without concerns about returning to accommodation.</li>
+                    </ul>
+                </div>
+                
+                <div class="insight-card" style="background-color: var(--primary-light); margin: 15px 0;">
+                    <div class="insight-title"><i class="fas fa-music"></i> Events & Entertainment</div>
+                    <ul>
+                        <li><strong>Evening Experience Development:</strong> Create more evening cultural experiences and entertainment options to address the short stay duration (1.2 days average).</li>
+                        <li><strong>Nightlife Event Programming:</strong> Develop signature nightlife events targeting Emiratis and Westerners, who show the highest importance for nightlife (78% and 77% respectively).</li>
+                        <li><strong>Distinctive Nightlife Concepts:</strong> Create unique nightlife venues that can compete with Dubai's offerings, targeting the 18-35 demographic (57% of visitors) who currently "leak" to Dubai.</li>
+                        <li><strong>Social Media Integration:</strong> Leverage the primary information sources for visitors (Instagram 61%, Facebook 60%, TikTok 44%) in event promotion strategies.</li>
+                    </ul>
+                </div>
+                
+                <div class="insight-card" style="background-color: var(--primary-light); margin: 15px 0;">
+                    <div class="insight-title"><i class="fas fa-hotel"></i> Accommodation & Hospitality</div>
+                    <ul>
+                        <li><strong>Budget Accommodation Development:</strong> Address the perception gap that Abu Dhabi lacks accommodation options for every budget (43% association).</li>
+                        <li><strong>Weekend Package Creation:</strong> Develop compelling weekend packages targeting the 18-39 age demographic (57% of visitors).</li>
+                        <li><strong>Spontaneous Booking Strategy:</strong> Create last-minute booking incentives, considering that 57% of domestic visitors don't typically make advance bookings.</li>
+                        <li><strong>Nightlife Integration:</strong> Partner with nightlife venues to create stay+nightlife packages that can compete with Dubai's offerings.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="insight-card" style="margin-top: 40px;">
+                <div class="insight-title"><i class="fas fa-chart-line"></i> Conclusion</div>
+                <p>Abu Dhabi's domestic brand health shows positive momentum, with improvements in awareness, visitation, and intent to visit. The effectiveness of the Q4 2024 campaigns has established a strong foundation for future growth. However, significant opportunities exist to enhance the visitor experience, address perception gaps, and reduce "leakage" to competing emirates, particularly in the nightlife sector.</p>
+                <p>The competitive landscape is evolving, with Dubai showing signs of market saturation and Ras Al Khaimah emerging as a potential competitor in specific segments. This presents Abu Dhabi with an opportunity to sharpen its positioning and capitalize on its unique strengths.</p>
+                <p>These recommendations offer a roadmap for Abu Dhabi to leverage its marketing success while tackling the specific issues of brief visits, declining repeat visitation, and nightlife competition from Dubai. Success will depend on tourism authorities, attractions, hotels, and transportation providers working together toward common goals.</p>
+            </div>
+        </section>
+        
+        <div class="footer">
+            <div class="container">
+                <p style="margin: 0; color: var(--gray-700); font-size: 0.9rem;">© 2025 Research & Insights Unit | Strategic Marketing & Communications | Department of Culture and Tourism – Abu Dhabi</p>
+            </div>
+        </div>
+    </div>
+    
+    <button class="print-btn" title="Print Report"><i class="fas fa-print"></i></button>
+</body>
+</html>
