@@ -441,24 +441,6 @@
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Make navigation interactive
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetElement = document.querySelector(targetId);
-                    
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 70,
-                        behavior: 'smooth'
-                    });
-                    
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
             // Print functionality
             document.querySelector('.print-btn').addEventListener('click', function() {
                 window.print();
@@ -491,10 +473,13 @@
         <div class="container">
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#executive-summary" class="nav-link active">Executive Summary</a>
+                    <a href="https://studiorns.github.io/Domestic.BHT.Summary/" class="nav-link active">Executive Summary</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#recommendations" class="nav-link">Strategic Recommendations</a>
+                    <a href="https://studiorns.github.io/Domestic.BHT.DataViz/" class="nav-link">Data Visualizations</a>
+                </li>
+                <li class="nav-item">
+                    <a href="https://studiorns.github.io/Domestic.BHT.Report/" class="nav-link">Full Report</a>
                 </li>
             </ul>
         </div>
